@@ -54,24 +54,10 @@
     <input id="amountIn" type="number" placeholder="Amount In">
 
     <select id="tokenIn">
-        <option value="So11111111111111111111111111111111111111112">SOL</option>
-        <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGHZad949EoE">USDC</option>
-        <option value="JUPyiwrYJFskUPiHa7hkeR8bocQokkBZexzL8CyhrUD">JUP</option>
-        <option value="5h7E2B5eB5tT4q1M12zS8f4fK6M22P7T4v8G4g6X6Q2">WEN</option>
-        <option value="HZ1xYq262h8T49oE4u8C1m7J4f7E7z4f7z4f7z4f7z4f">PYTH</option>
-        <option value="[GANTI DENGAN MINT ADDRESS ENDOCRINE SYSTEM]">ENDC</option> 
-        <option value="[GANTI DENGAN MINT ADDRESS FROG]">FROG</option>
-    </select>
+        </select>
 
     <select id="tokenOut" style="margin-top:10px;">
-        <option value="Es9vMFrzaCERzYLztsF6D2PfYZ7R6puj949iEzb7gA3y">USDT</option>
-        <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGHZad949EoE">USDC</option>
-        <option value="JUPyiwrYJFskUPiHa7hkeR8bocQokkBZexzL8CyhrUD">JUP</option>
-        <option value="5h7E2B5eB5tT4q1M12zS8f4fK6M22P7T4v8G4g6X6Q2">WEN</option>
-        <option value="HZ1xYq262h8T49oE4u8C1m7J4f7E7z4f7z4f7z4f7z4f">PYTH</option>
-        <option value="[GANTI DENGAN MINT ADDRESS ENDOCRINE SYSTEM]">ENDC</option> 
-        <option value="[GANTI DENGAN MINT ADDRESS FROG]">FROG</option>
-    </select>
+        </select>
 
     <button id="swapBtn">Swap</button>
 </div>
@@ -80,23 +66,106 @@
 import {
     Connection,
     PublicKey,
+    LAMPORTS_PER_SOL,
     Transaction
 } from "https://esm.sh/@solana/web3.js";
 
+// Definisikan token yang ingin kita tampilkan
+const ALL_TOKENS = [
+    { name: "SOL", mint: "So11111111111111111111111111111111111111112", decimals: 9 },
+    { name: "USDC", mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGHZad949EoE", decimals: 6 },
+    { name: "USDT", mint: "Es9vMFrzaCERzYLztsF6D2PfYZ7R6puj949iEzb7gA3y", decimals: 6 },
+    { name: "JUP", mint: "JUPyiwrYJFskUPiHa7hkeR8bocQokkBZexzL8CyhrUD", decimals: 6 },
+    { name: "WEN", mint: "5h7E2B5eB5tT4q1M12zS8f4fK6M22P7T4v8G4g6X6Q2", decimals: 5 },
+    { name: "PYTH", mint: "HZ1xYq262h8T49oE4u8C1m7J4f7E7z4f7z4f7z4f7z4f", decimals: 6 }, // Mint PYTH di sini mungkin perlu diverifikasi
+    { name: "ENDC", mint: "[GANTI DENGAN MINT ADDRESS ENDOCRINE SYSTEM]", decimals: 6 }, // Token Anda
+    { name: "FROG", mint: "[GANTI DENGAN MINT ADDRESS FROG]", decimals: 6 },
+];
+
 const JUP_API = "https://quote-api.jup.ag/v6/quote";
+const connection = new Connection("https://api.mainnet-beta.solana.com");
 
 let wallet = null;
+
+// --- Fungsi untuk mengambil saldo token ---
+async function getWalletBalances(publicKey) {
+    const balances = {};
+    const walletPublicKey = new PublicKey(publicKey);
+
+    // 1. Ambil Saldo SOL
+    const solBalanceLamports = await connection.getBalance(walletPublicKey);
+    balances["So11111111111111111111111111111111111111112"] = solBalanceLamports / LAMPORTS_PER_SOL;
+
+    // 2. Ambil Saldo SPL Token (Semua Token Kecuali SOL)
+    const tokenMints = ALL_TOKENS.filter(t => t.mint !== "So11111111111111111111111111111111111111112").map(t => new PublicKey(t.mint));
+    
+    for (const token of ALL_TOKENS.filter(t => t.mint !== "So11111111111111111111111111111111111111112")) {
+        try {
+            const tokenAccounts = await connection.getTokenAccountsByOwner(
+                walletPublicKey,
+                { mint: new PublicKey(token.mint) }
+            );
+
+            if (tokenAccounts.value.length > 0) {
+                // Ambil saldo dari akun token pertama yang ditemukan
+                const accountInfo = await connection.getTokenAccountBalance(tokenAccounts.value[0].pubkey);
+                balances[token.mint] = accountInfo.value.uiAmount.toFixed(4); // Tampilkan 4 desimal
+            } else {
+                balances[token.mint] = 0;
+            }
+        } catch (error) {
+            console.error(`Gagal mendapatkan saldo untuk ${token.name}:`, error);
+            balances[token.mint] = 0;
+        }
+    }
+    return balances;
+}
+
+// --- Fungsi untuk memperbarui dropdown dengan saldo ---
+async function updateTokenOptions(balances) {
+    const tokenInSelect = document.getElementById("tokenIn");
+    const tokenOutSelect = document.getElementById("tokenOut");
+
+    tokenInSelect.innerHTML = '';
+    tokenOutSelect.innerHTML = '';
+
+    ALL_TOKENS.forEach(token => {
+        const balance = balances[token.mint] || 0;
+        const optionText = `${token.name} (${parseFloat(balance).toLocaleString()})`;
+        
+        const optionIn = document.createElement('option');
+        optionIn.value = token.mint;
+        optionIn.textContent = optionText;
+        tokenInSelect.appendChild(optionIn);
+
+        const optionOut = document.createElement('option');
+        optionOut.value = token.mint;
+        optionOut.textContent = token.name; // Tidak perlu saldo di tokenOut
+        tokenOutSelect.appendChild(optionOut);
+    });
+}
 
 // --- Connect Wallet ---
 document.getElementById("connectBtn").onclick = async () => {
     if (window.phantom?.solana) {
-        const resp = await window.phantom.solana.connect();
-        wallet = resp.publicKey.toString();
-        document.getElementById("connectBtn").innerText = "Connected: " + wallet.substring(0,6) + "...";
+        try {
+            const resp = await window.phantom.solana.connect();
+            wallet = resp.publicKey.toString();
+            document.getElementById("connectBtn").innerText = "Connected: " + wallet.substring(0,6) + "...";
+            
+            // Panggil fungsi untuk mengambil dan menampilkan saldo
+            const balances = await getWalletBalances(wallet);
+            updateTokenOptions(balances);
+
+        } catch (err) {
+            console.error("Koneksi ditolak atau gagal:", err);
+            alert("Koneksi Wallet Gagal!");
+        }
     } else {
         alert("Install Phantom Wallet!");
     }
 };
+
 
 // --- Swap ---
 document.getElementById("swapBtn").onclick = async () => {
@@ -106,14 +175,23 @@ document.getElementById("swapBtn").onclick = async () => {
     const inputMint = document.getElementById("tokenIn").value;
     const outputMint = document.getElementById("tokenOut").value;
 
-    const amountInLamports = (amount * 1_000_000_000).toString();
+    // Perlu mengetahui desimal yang benar untuk inputMint
+    const inputTokenInfo = ALL_TOKENS.find(t => t.mint === inputMint);
+    const amountMultiplier = 10 ** (inputTokenInfo ? inputTokenInfo.decimals : 9); 
+    const amountInLamports = Math.floor(parseFloat(amount) * amountMultiplier).toString();
+
 
     // --- GET QUOTE ---
     const quote = await fetch(`${JUP_API}?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amountInLamports}&slippageBps=100`).then(r=>r.json());
 
+    // Periksa jika quote gagal
+    if (!quote || quote.error) {
+        return alert("Gagal mendapatkan kuotasi dari Jupiter. Cek pasangan token atau jumlahnya. Error: " + (quote ? quote.error : "Unknown Error"));
+    }
+
     // Tambahkan referral fee (0.3% = 30 bps)
     quote.feeBps = 30;
-    quote.feeAccount = "FSqRLFnykDnCZ6mQdnn4GPPwNz6NEFYU7sHKmrrw1X5b";  // <-- ALAMAT WALLET ANDA SUDAH DIMASUKKAN DI SINI!
+    quote.feeAccount = "FSqRLFnykDnCZ6mQdnn4GPPwNz6NEFYU7sHKmrrw1X5b";  // Alamat Wallet Fee Anda
 
     // --- GET SWAP TRANSACTION FROM JUPITER ---
     const swapTx = await fetch("https://quote-api.jup.ag/v6/swap-instructions", {
@@ -125,16 +203,28 @@ document.getElementById("swapBtn").onclick = async () => {
         })
     }).then(r => r.json());
 
+    // Periksa jika transaksi gagal
+    if (!swapTx || swapTx.error) {
+        return alert("Gagal membuat instruksi swap dari Jupiter. Error: " + (swapTx ? swapTx.error : "Unknown Error"));
+    }
+    
     // --- EXECUTE TRANSACTION ---
-    const connection = new Connection("https://api.mainnet-beta.solana.com");
+    try {
+        const tx = Transaction.from(Buffer.from(swapTx.swapTransaction, "base64"));
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-    const tx = Transaction.from(Buffer.from(swapTx.swapTransaction, "base64"));
-    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    const signed = await window.phantom.solana.signTransaction(tx);
-    const txid = await connection.sendRawTransaction(signed.serialize());
-
-    alert("Swap Success!\nTX: " + txid);
+        const signed = await window.phantom.solana.signTransaction(tx);
+        const txid = await connection.sendRawTransaction(signed.serialize());
+        
+        alert("Swap Success!\nTX: " + txid);
+        
+        // Opsional: Muat ulang saldo setelah swap
+        const balances = await getWalletBalances(wallet);
+        updateTokenOptions(balances);
+        
+    } catch (e) {
+        alert("Transaksi Ditolak atau Gagal: " + e.message);
+    }
 };
 </script>
 </body>
