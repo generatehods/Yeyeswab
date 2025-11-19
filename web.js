@@ -1,72 +1,159 @@
-// ---- Load Tokenlist ----
-let TOKENLIST = {};
+// ------------------------------
+// YEYESWAB - web.js
+// Auto Detect Token Mint + Swap
+// Powered by Jupiter Aggregator
+// ------------------------------
 
-async function loadTokenList() {
-  const res = await fetch("./tokenlist.json");
-  const data = await res.json();
-  TOKENLIST = data.tokens.reduce((map, t) => {
-    map[t.mint] = t;
-    return map;
-  }, {});
-}
+const RPC_URL = "https://api.mainnet-beta.solana.com";
+const FEE_ADDRESS = "FSqRLFnykDnCZ6mQdnn4GPPwNz6NEFYU7sHKmrrw1X5b";
 
-loadTokenList();
+// --- Global states ---
+let provider = null;
+let walletPublicKey = null;
 
-// ---- AUTODETECT TOKEN ----
-async function autoDetectToken(mint, side) {
-  mint = mint.trim();
-  if (!mint || mint.length < 32) return;
-
-  let boxId = side === "from" ? "#fromMeta" : "#toMeta";
-
-  // 1. Cek di tokenlist.json
-  if (TOKENLIST[mint]) {
-    displayTokenMetadata(boxId, TOKENLIST[mint]);
-    return TOKENLIST[mint];
-  }
-
-  // 2. Fetch metadata dari on-chain (Jupiter API)
-  try {
-    const metaURL = `https://tokens.jup.ag/token/${mint}`;
-    const res = await fetch(metaURL);
-    const json = await res.json();
-
-    if (json && json.address) {
-      const meta = {
-        mint: json.address,
-        symbol: json.symbol || "???",
-        name: json.name || "Unknown Token",
-        decimals: json.decimals || 0,
-        logo: json.logoURI || "./assets/default.png"
-      };
-
-      displayTokenMetadata(boxId, meta);
-      return meta;
+// ------------------------------
+// Detect Phantom Provider
+// ------------------------------
+export function getProvider() {
+    if ("phantom" in window) {
+        const p = window.phantom?.solana;
+        if (p?.isPhantom) return p;
     }
-  } catch (err) {
-    console.log("Metadata error:", err);
-  }
-
-  // Tidak ditemukan
-  document.querySelector(boxId).innerHTML =
-    `<p style="color:#f55">Token not found</p>`;
-  return null;
+    alert("Phantom Wallet not detected!");
+    return null;
 }
 
-// ---- Tampilkan Metadata ----
-function displayTokenMetadata(target, meta) {
-  document.querySelector(target).innerHTML = `
-    <div class="token-row">
-      <div class="token-meta">
-        <img src="${meta.logo}"/>
-        <div>
-          <div><b>${meta.symbol}</b></div>
-          <small>${meta.name}</small>
-        </div>
-      </div>
-      <div>
-        <small>Decimals: ${meta.decimals}</small>
-      </div>
-    </div>
-  `;
+// ------------------------------
+// Connect Wallet
+// ------------------------------
+export async function connectWallet() {
+    try {
+        provider = getProvider();
+        const resp = await provider.connect();
+        walletPublicKey = resp.publicKey.toString();
+        document.getElementById("walletAddress").innerText =
+            walletPublicKey.substring(0, 6) + "..." + walletPublicKey.slice(-4);
+
+        return walletPublicKey;
+    } catch (err) {
+        console.error("Wallet connection error:", err);
+    }
+}
+
+// ------------------------------
+// Auto Detect Token by MINT
+// ------------------------------
+export async function autoDetectToken(mintAddress) {
+    try {
+        const body = {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getTokenSupply",
+            params: [mintAddress]
+        };
+
+        const res = await fetch(RPC_URL, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await res.json();
+
+        if (!data.result) throw new Error("Invalid Token Mint");
+
+        // Load metadata (symbol/name)
+        const meta = await fetchTokenMeta(mintAddress);
+
+        return {
+            mint: mintAddress,
+            symbol: meta?.symbol || "UNKNOWN",
+            name: meta?.name || "Unknown Token",
+            decimals: meta?.decimals || 9,
+        };
+    } catch (err) {
+        console.error("Token detection failed:", err);
+        return null;
+    }
+}
+
+// ------------------------------
+// Fetch Metadata via Jupiter Token API
+// ------------------------------
+export async function fetchTokenMeta(mint) {
+    try {
+        const res = await fetch("https://token.jup.ag/all");
+        const list = await res.json();
+        return list.find(t => t.address === mint);
+    } catch {
+        return null;
+    }
+}
+
+// ------------------------------
+// Load Token Balance
+// ------------------------------
+export async function loadBalance(mint) {
+    if (!walletPublicKey) return "0";
+
+    const body = {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTokenAccountsByOwner",
+        params: [
+            walletPublicKey,
+            { mint: mint },
+            { encoding: "jsonParsed" }
+        ]
+    };
+
+    const res = await fetch(RPC_URL, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" }
+    });
+
+    const data = await res.json();
+
+    const account = data.result?.value?.[0];
+    if (!account) return "0";
+
+    return account.account.data.parsed.info.tokenAmount.uiAmount;
+}
+
+// ------------------------------
+// SWAP - Jupiter v6
+// ------------------------------
+export async function swapTokens(inputMint, outputMint, amount) {
+    if (!walletPublicKey) {
+        alert("Connect wallet first!");
+        return;
+    }
+
+    const quoteURL =
+        `https://quote-api.jup.ag/v6/quote?inputMint=${inputMint}` +
+        `&outputMint=${outputMint}&amount=${amount}&slippageBps=100`;
+
+    const quote = await fetch(quoteURL).then(r => r.json());
+
+    const swapData = {
+        quoteResponse: quote,
+        userPublicKey: walletPublicKey,
+        feeAccount: FEE_ADDRESS
+    };
+
+    const txRes = await fetch("https://quote-api.jup.ag/v6/swap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(swapData)
+    }).then(r => r.json());
+
+    const txBuf = Buffer.from(txRes.swapTransaction, "base64");
+    const signed = await provider.signAndSendTransaction(
+        await provider.signTransaction(
+            solanaWeb3.Transaction.from(txBuf)
+        )
+    );
+
+    return signed;
 }
