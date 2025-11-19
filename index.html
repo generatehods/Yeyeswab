@@ -1,122 +1,63 @@
-<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>YEYESWAB — A++++ (Glass Clean)</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YEYESWAB — Solana DEX</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-  <body>
-    <div class="app">
-      <header class="topbar">
-        <div class="brand">
-          <img src="assets/logo.png" alt="logo" class="logo" />
-          <div>
-            <h1>YEYESWAB</h1>
-            <div class="sub">Glass · Clean · Secure</div>
-          </div>
+<body>
+
+  <div class="container">
+
+    <h1 class="title">YEYESWAB</h1>
+    <p class="sub">Glass • Clean • Secure</p>
+
+    <button id="connectBtn" class="btn-connect">Connect Wallet</button>
+
+    <div class="swap-box">
+
+      <h2>Swap</h2>
+
+      <!-- FROM TOKEN -->
+      <div class="token-section">
+        <label>From:</label>
+
+        <div class="token-wrapper">
+          <img id="fromLogo" class="token-icon" src="assets/sol.png">
+          <input id="fromToken" class="token-input" data-side="from" placeholder="SOL / Mint Address">
+          <div id="fromDropdown" class="token-dropdown" data-side="from"></div>
         </div>
 
-        <div class="top-actions">
-          <div id="balanceDisplay" class="balance">—</div>
-          <button id="connectBtn" class="btn">Connect Wallet</button>
+        <input id="fromAmount" class="amount-input" type="number" placeholder="0.0">
+      </div>
+
+      <!-- SWITCH -->
+      <button id="switchBtn" class="switch-btn">⇅</button>
+
+      <!-- TO TOKEN -->
+      <div class="token-section">
+        <label>To:</label>
+
+        <div class="token-wrapper">
+          <img id="toLogo" class="token-icon" src="assets/usdc.png">
+          <input id="toToken" class="token-input" data-side="to" placeholder="USDC / Mint Address">
+          <div id="toDropdown" class="token-dropdown" data-side="to"></div>
         </div>
-      </header>
 
-      <main class="main">
-        <section class="panel left">
-          <div class="card swap">
-            <div class="card-head">
-              <h2>Swap</h2>
-              <div class="muted small">Powered by Jupiter. Use with caution.</div>
-            </div>
+        <input id="toAmount" class="amount-input" type="number" placeholder="0.0" disabled>
+      </div>
 
-            <div class="field">
-              <input id="tokenSearch" placeholder="Search tokens (symbol or name)" />
-            </div>
+      <button id="quoteBtn" class="btn">Get Quote</button>
+      <button id="swapBtn" class="btn-primary">Swap</button>
 
-            <div class="field token-row">
-              <div class="token-select">
-                <img id="fromLogo" src="assets/sol.png" alt="" />
-                <select id="fromToken"></select>
-              </div>
-              <input id="fromAmount" type="number" placeholder="0.0" min="0" />
-            </div>
-
-            <div class="center">
-              <button id="flipBtn" class="ghost">Flip ↕</button>
-            </div>
-
-            <div class="field token-row">
-              <div class="token-select">
-                <img id="toLogo" src="assets/usdc.png" alt="" />
-                <select id="toToken"></select>
-              </div>
-              <input id="toAmount" type="text" placeholder="0.0" disabled />
-            </div>
-
-            <div class="options">
-              <label>Slippage
-                <input id="slippage" type="number" min="0" max="5" step="0.1" value="0.5" />%
-              </label>
-
-              <label class="feeLabel">
-                <input id="chargeFee" type="checkbox" checked /> Charge fee
-              </label>
-            </div>
-
-            <div class="actions">
-              <button id="quoteBtn" class="btn ghost">Get Quote</button>
-              <button id="swapBtn" class="btn">Swap</button>
-            </div>
-
-            <div id="routePreview" class="route"></div>
-            <div id="status" class="status">Ready</div>
-          </div>
-
-          <div class="card history">
-            <h3>Local Swap History</h3>
-            <ul id="historyList"></ul>
-            <div class="history-actions">
-              <button id="clearHistory" class="ghost">Clear History</button>
-            </div>
-          </div>
-        </section>
-
-        <aside class="panel right">
-          <div class="card info">
-            <h3>Account</h3>
-            <div id="walletAddr" class="muted">Not connected</div>
-            <div class="small muted">Fee receiver: <span id="feeAddr"></span></div>
-          </div>
-
-          <div class="card chart">
-            <h3>Price Chart</h3>
-            <iframe id="dexFrame" src="" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
-          </div>
-
-          <div class="card tips">
-            <h3>Tips</h3>
-            <ul>
-              <li>Set slippage if swap fails.</li>
-              <li>Do small tests first.</li>
-              <li>Don't send large funds without audit.</li>
-            </ul>
-          </div>
-        </aside>
-      </main>
-
-      <footer class="footer">
-        <small>Built for testing only. YEYESWAB — Glass Clean Edition.</small>
-      </footer>
     </div>
 
-    <!-- libs -->
-    <script src="https://unpkg.com/@solana/web3.js@1.77.3/lib/index.iife.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bs58@4.0.1/index.min.js"></script>
+    <p id="status" class="status"></p>
 
-    <!-- app -->
-    <script type="module" src="web.js"></script>
-  </body>
+  </div>
+
+  <script src="web.js"></script>
+</body>
 </html>
