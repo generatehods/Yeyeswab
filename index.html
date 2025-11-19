@@ -3,54 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YEYESWAB — DEX</title>
+  <title>YEYESWAB — Solana DEX</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <div class="container">
+
+  <header>
     <h1>YEYESWAB</h1>
+    <button id="connectButton">Connect Wallet</button>
+  </header>
 
-    <!-- Connect Wallet -->
-    <button id="connectBtn">Connect Wallet</button>
-    <p id="walletAddress"></p>
+  <main>
+    <section class="swap-box">
+      <h2>Swap</h2>
 
-    <!-- Balance -->
-    <p id="balanceInfo"></p>
-
-    <!-- Swap Box -->
-    <div class="swap-box">
-
-      <!-- From -->
       <div class="token-row">
-        <div class="tokenselect">
-          <img id="fromLogo" src="assets/sol.png">
-          <select id="fromToken"></select>
-        </div>
-        <input type="number" id="fromAmount" placeholder="0.00" />
+        <label>From</label>
+        <select id="fromToken"></select>
+        <input type="number" id="fromAmount" placeholder="0.0" />
       </div>
 
-      <div class="arrow">↓</div>
-
-      <!-- To -->
       <div class="token-row">
-        <div class="tokenselect">
-          <img id="toLogo" src="assets/usdc.png">
-          <select id="toToken"></select>
-        </div>
-        <input type="text" id="toAmount" disabled />
+        <label>To</label>
+        <select id="toToken"></select>
+        <input type="text" id="toAmount" placeholder="0.0" readonly />
       </div>
 
-      <button id="quoteBtn">Get Quote</button>
-      <button id="swapBtn">Swap</button>
+      <button id="swapButton">Swap Now</button>
 
-      <!-- STATUS -->
       <p id="status"></p>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <script src="https://unpkg.com/@solana/web3.js@1.77.3/lib/index.iife.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bs58"></script>
-  <script type="module" src="web.js"></script>
+  <script src="web.js"></script>
 </body>
 </html>
