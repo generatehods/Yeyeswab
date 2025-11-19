@@ -2,90 +2,49 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #050b18;
-  color: #fff;
+  color: white;
 }
 
 .container {
-  width: 95%;
-  max-width: 430px;
-  margin: 0 auto;
-  padding-top: 20px;
-}
-
-.card {
-  background: #0c1120;
+  max-width: 420px;
+  margin: 40px auto;
+  background: #0a1226;
   padding: 20px;
   border-radius: 14px;
-  box-shadow: 0 0 15px #000 inset;
-  margin-bottom: 22px;
+  box-shadow: 0 0 25px rgba(0,255,255,0.08);
 }
 
-h1 {
-  text-align: center;
-  font-size: 26px;
+button {
+  width: 100%;
+  padding: 14px;
+  background: #14f195;
+  border: none;
+  color: black;
+  font-size: 17px;
+  border-radius: 10px;
+  margin-top: 10px;
+  cursor: pointer;
   font-weight: bold;
 }
 
-.token-box {
-  margin-top: 10px;
-}
-
-.token-input {
+input {
   width: 100%;
   padding: 12px;
-  background: #080c18;
-  border: 1px solid #1b2238;
-  color: #fff;
-  border-radius: 10px;
-  font-size: 16px;
+  background: #0d1836;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-top: 8px;
+  color: white;
+  font-size: 15px;
 }
 
-.token-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
+.label {
+  margin-top: 18px;
+  opacity: 0.85;
 }
 
-.token-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.token-meta img {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #111;
-}
-
-.swap-btn {
-  width: 100%;
-  padding: 14px;
-  background: #4d61ff;
-  border: none;
-  border-radius: 10px;
-  margin-top: 20px;
-  color: #fff;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.swap-btn:disabled {
-  background: #333b60;
-}
-
-#connectBtn {
-  width: 100%;
-  padding: 14px;
-  background: #00d47f;
-  border: none;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  color: #000;
-  font-weight: bold;
-  font-size: 17px;
-  cursor: pointer;
+.small {
+  margin-top: 6px;
+  opacity: 0.6;
+  font-size: 14px;
 }
