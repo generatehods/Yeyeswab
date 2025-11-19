@@ -1,9 +1,133 @@
-.small {
-  color: #ffffff; 
-  font-size: 14px;
-  margin-bottom: 6px;
+/* simple dark theme with visible white text for balances */
+
+:root{
+  --bg: #071028;
+  --card: #071a2a;
+  --muted: #9aa8c6;
+  --accent: #23f7a1; /* bright green */
+  --accent-dark: #16c67a;
+  --button-text: #002018;
 }
 
-.label {
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  background: radial-gradient(circle at 10% 10%, #042033 0%, #031022 40%, #020411 100%);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #eaf0ff;
+}
+
+.container{
+  max-width: 520px;
+  margin: 36px auto;
+  padding: 26px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+h2{
+  margin: 0 0 18px 0;
+  font-size: 20px;
+  color: #e8f1ff;
+}
+
+/* buttons */
+.btn{
+  display:block;
+  width:100%;
+  padding:14px 18px;
+  margin: 10px 0;
+  border: none;
+  outline: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  color: var(--button-text);
+  box-shadow: 0 8px 20px rgba(35,247,161,0.12);
+}
+
+.btn.secondary{
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  color: var(--accent);
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: none;
+}
+
+.btn.primary{
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  color: var(--button-text);
+}
+
+/* inputs */
+input{
+  display:block;
+  width:100%;
+  padding:12px 14px;
+  margin-top:8px;
+  margin-bottom:12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.02);
+  color: #e9f2ff;
+  font-size: 14px;
+}
+
+/* labels & small text */
+.label{
   color: #a8b4ff;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.small {
+  color: #ffffff;
+  font-size: 14px;
+  margin-top: 6px;
+  word-break: break-all;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* token info box */
+.info{
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  color: #cfe8ff;
+  font-size: 13px;
+}
+
+/* status area */
+.status{
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
+  font-size: 13px;
+  color: #ffd1d1;
+}
+
+/* horizontal rule */
+hr{
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.04);
+  margin: 16px 0;
+}
+
+/* responsive smaller screens */
+@media (max-width: 640px){
+  .container{
+    margin: 18px;
+    padding: 18px;
+  }
 }
