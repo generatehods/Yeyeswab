@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>YEYESWAB</title>
+<title>YEYESWAB — Endocrine System DEX</title>
 
 <style>
     body {
@@ -45,7 +44,7 @@
 </head>
 <body>
 
-<h2>YEYESWAB — Simple Solana Swap</h2>
+<h2>YEYESWAB — Simple Solana Swap (Endocrine System)</h2>
 
 <div class="card">
     <button id="connectBtn">Connect Wallet</button>
@@ -56,10 +55,22 @@
 
     <select id="tokenIn">
         <option value="So11111111111111111111111111111111111111112">SOL</option>
+        <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGHZad949EoE">USDC</option>
+        <option value="JUPyiwrYJFskUPiHa7hkeR8bocQokkBZexzL8CyhrUD">JUP</option>
+        <option value="5h7E2B5eB5tT4q1M12zS8f4fK6M22P7T4v8G4g6X6Q2">WEN</option>
+        <option value="HZ1xYq262h8T49oE4u8C1m7J4f7E7z4f7z4f7z4f7z4f">PYTH</option>
+        <option value="[GANTI DENGAN MINT ADDRESS ENDOCRINE SYSTEM]">ENDC</option> 
+        <option value="[GANTI DENGAN MINT ADDRESS FROG]">FROG</option>
     </select>
 
     <select id="tokenOut" style="margin-top:10px;">
         <option value="Es9vMFrzaCERzYLztsF6D2PfYZ7R6puj949iEzb7gA3y">USDT</option>
+        <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGHZad949EoE">USDC</option>
+        <option value="JUPyiwrYJFskUPiHa7hkeR8bocQokkBZexzL8CyhrUD">JUP</option>
+        <option value="5h7E2B5eB5tT4q1M12zS8f4fK6M22P7T4v8G4g6X6Q2">WEN</option>
+        <option value="HZ1xYq262h8T49oE4u8C1m7J4f7E7z4f7z4f7z4f7z4f">PYTH</option>
+        <option value="[GANTI DENGAN MINT ADDRESS ENDOCRINE SYSTEM]">ENDC</option> 
+        <option value="[GANTI DENGAN MINT ADDRESS FROG]">FROG</option>
     </select>
 
     <button id="swapBtn">Swap</button>
@@ -102,7 +113,7 @@ document.getElementById("swapBtn").onclick = async () => {
 
     // Tambahkan referral fee (0.3% = 30 bps)
     quote.feeBps = 30;
-    quote.feeAccount = "FSqRLFnykDnCZ6mQdnn4GPPwNz6NEFYU7sHKmrrw1X5b";  // GANTI INI !!!
+    quote.feeAccount = "FSqRLFnykDnCZ6mQdnn4GPPwNz6NEFYU7sHKmrrw1X5b";  // <-- ALAMAT WALLET ANDA SUDAH DIMASUKKAN DI SINI!
 
     // --- GET SWAP TRANSACTION FROM JUPITER ---
     const swapTx = await fetch("https://quote-api.jup.ag/v6/swap-instructions", {
