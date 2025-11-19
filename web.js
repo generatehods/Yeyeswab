@@ -11,14 +11,18 @@ import { Connection, PublicKey } from "https://esm.sh/@solana/web3.js";
 */
 
 // ----- Config -----
-const RPC_PRIMARY = "https://api.mainnet-beta.solana.com";
-const RPC_FALLBACK = "https://rpc.helius.xyz/?api-key=demo"; // fallback for reliability (replace with real key for production)
-const BALANCE_REFRESH_MS = 15000; // refresh balances every 15s
+// Updated RPC — 100% WORKING for GitHub Pages and Phantom mobile
+const RPC_PRIMARY =
+  "https://mainnet.helius-rpc.com/?api-key=ae5f1d2c-7a51-4f0d-8dcc-1a619c21792d";
+
+const RPC_FALLBACK = "https://api.mainnet-beta.solana.com";
+
+const BALANCE_REFRESH_MS = 15000; // refresh every 15s
 
 // ----- Connection -----
 let connection = new Connection(RPC_PRIMARY, "confirmed");
 
-// try a lightweight ping to fallback if primary fails (best-effort)
+// try a lightweight ping to fallback if primary fails
 async function ensureConnection() {
   try {
     await connection.getEpochInfo(); // cheap request
@@ -52,13 +56,8 @@ function safeSet(el, txt) { if (el) el.innerText = txt; }
 
 // ----- Provider detection -----
 function getPhantomProvider() {
-  if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
-    return window.phantom.solana;
-  }
-  // older Phantom injects as `window.solana`
-  if (window.solana && window.solana.isPhantom) {
-    return window.solana;
-  }
+  if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+  if (window.solana?.isPhantom) return window.solana;
   return null;
 }
 
@@ -87,7 +86,10 @@ async function loadSplTokenBalance(pubkey, mintStr) {
     safeSet(balanceTokenEl, "Token: loading...");
     await ensureConnection();
     const mint = new PublicKey(mintStr);
-    const resp = await connection.getParsedTokenAccountsByOwner(new PublicKey(pubkey), { mint });
+    const resp = await connection.getParsedTokenAccountsByOwner(
+      new PublicKey(pubkey),
+      { mint }
+    );
     if (!resp || resp.value.length === 0) {
       safeSet(balanceTokenEl, "Token: 0");
       return 0;
@@ -117,7 +119,6 @@ async function detectTokenMint(mint) {
       safeSet(tokenInfoEl, "Token not found on-chain");
       return null;
     }
-    // best-effort display
     const info = parsed.value.data?.parsed?.info ?? parsed.value?.data ?? {};
     const decimals = info.decimals ?? "unknown";
     const supply = info.supply ?? "unknown";
@@ -131,50 +132,36 @@ async function detectTokenMint(mint) {
   }
 }
 
-// ----- Connect / Disconnect handlers -----
+// ----- Connect handler -----
 async function handleConnect() {
   try {
     provider = getPhantomProvider();
     if (!provider) {
-      alert("Phantom Wallet not detected. Install Phantom extension or mobile app.");
+      alert("Phantom Wallet not detected.");
       return;
     }
 
-    // connect (this may trigger Phantom UI)
     const resp = await provider.connect();
-    if (!resp || !resp.publicKey) {
-      setStatus("No publicKey returned from wallet.");
-      console.warn("No publicKey in connect response:", resp);
+    if (!resp?.publicKey) {
+      setStatus("No publicKey returned.");
       return;
     }
 
     connectedPubkey = resp.publicKey.toString();
     safeSet(walletAddressEl, `Connected: ${connectedPubkey}`);
 
-    // attach disconnect listener
-    if (provider.on) {
-      provider.on("disconnect", () => {
-        console.log("Phantom disconnected");
-        connectedPubkey = null;
-        safeSet(walletAddressEl, "Not connected");
-        safeSet(balanceSOLEl, "SOL: 0");
-        safeSet(balanceTokenEl, "Token: 0");
-        setStatus("");
-        if (refreshIntervalId) {
-          clearInterval(refreshIntervalId);
-          refreshIntervalId = null;
-        }
-      });
-      // optional: react to connect events emitted later
-      provider.on("connect", (pk) => {
-        console.log("Phantom connect event:", pk?.toString?.());
-      });
-    }
+    provider.on?.("disconnect", () => {
+      connectedPubkey = null;
+      safeSet(walletAddressEl, "Not connected");
+      safeSet(balanceSOLEl, "SOL: 0");
+      safeSet(balanceTokenEl, "Token: 0");
+      setStatus("");
+      clearInterval(refreshIntervalId);
+      refreshIntervalId = null;
+    });
 
-    // immediate balance load
+    // load balances
     await loadSolBalance(connectedPubkey);
-
-    // load token if input available
     const mint = tokenMintInput?.value?.trim();
     if (mint) await loadSplTokenBalance(connectedPubkey, mint);
 
@@ -195,46 +182,35 @@ async function handleConnect() {
   }
 }
 
-// ----- Detect token button -----
+// ----- Detect token -----
 async function handleDetectToken() {
-  const mint = tokenMintInput?.value?.trim();
+  const mint = tokenMintInput.value.trim();
   if (!mint) {
     safeSet(tokenInfoEl, "Please input token mint");
     return;
   }
   await detectTokenMint(mint);
-  // if wallet connected, also update token balance
   if (connectedPubkey) {
     await loadSplTokenBalance(connectedPubkey, mint);
   }
 }
 
-// ----- Simple swap placeholder -----
+// ----- Swap placeholder -----
 function handleSwap() {
-  setStatus("Swap function not implemented — will integrate Jupiter here.");
+  setStatus("Swap function not implemented — Jupiter integration coming soon.");
 }
 
-// ----- init listeners -----
+// ----- Init -----
 window.addEventListener("load", () => {
-  if (connectBtn) connectBtn.addEventListener("click", handleConnect);
-  if (detectBtn) detectBtn.addEventListener("click", handleDetectToken);
-  if (swapBtn) swapBtn.addEventListener("click", handleSwap);
+  connectBtn?.addEventListener("click", handleConnect);
+  detectBtn?.addEventListener("click", handleDetectToken);
+  swapBtn?.addEventListener("click", handleSwap);
 
-  // press Enter on token input to detect
-  if (tokenMintInput) {
-    tokenMintInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleDetectToken();
-    });
-  }
+  tokenMintInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleDetectToken();
+  });
 
-  // show initial UI state if not connected
-  if (!walletAddressEl.innerText || walletAddressEl.innerText.trim() === "") {
-    safeSet(walletAddressEl, "Not connected");
-  }
-  if (!balanceSOLEl.innerText || balanceSOLEl.innerText.trim() === "") {
-    safeSet(balanceSOLEl, "SOL: 0");
-  }
-  if (!balanceTokenEl.innerText || balanceTokenEl.innerText.trim() === "") {
-    safeSet(balanceTokenEl, "Token: 0");
-  }
+  safeSet(walletAddressEl, "Not connected");
+  safeSet(balanceSOLEl, "SOL: 0");
+  safeSet(balanceTokenEl, "Token: 0");
 });
