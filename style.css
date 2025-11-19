@@ -1,5 +1,5 @@
 body {
-  background: #060c1e;
+  background: #050b18;
   color: #fff;
   font-family: Arial;
   margin: 0;
@@ -7,8 +7,8 @@ body {
 }
 
 .container {
-  width: 90%;
-  max-width: 400px;
+  width: 92%;
+  max-width: 420px;
   margin: auto;
   text-align: center;
   padding-top: 40px;
@@ -19,37 +19,69 @@ h1 {
 }
 
 .swap-box {
-  background: #0d172f;
+  background: #0a1227;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 14px;
   margin-top: 20px;
+  box-shadow: 0 0 20px #0005;
 }
 
-.row {
+.token-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
 }
 
-select, input {
-  width: 48%;
-  padding: 10px;
-  border-radius: 8px;
+input {
+  width: 45%;
+  padding: 12px;
+  background: #0f1a35;
   border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+}
+
+select {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 16px;
 }
 
 button {
   width: 100%;
   padding: 12px;
-  background: #1d5cff;
+  background: #2064ff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-top: 10px;
   color: white;
   font-size: 16px;
 }
 
+.tokenselect {
+  display: flex;
+  align-items: center;
+  background: #0f1a35;
+  padding: 8px;
+  border-radius: 10px;
+  width: 45%;
+}
+
+.tokenselect img {
+  width: 26px;
+  margin-right: 8px;
+}
+
 .arrow {
   font-size: 24px;
   margin: 10px 0;
+}
+
+#status {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.9;
 }
