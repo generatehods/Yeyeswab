@@ -1,5 +1,25 @@
-[
-  {"symbol":"SOL","name":"Solana","address":"So11111111111111111111111111111111111111112","logo":"sol.png","decimals":9},
-  {"symbol":"USDC","name":"USD Coin","address":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","logo":"usdc.png","decimals":6},
-  {"symbol":"USDT","name":"Tether USD","address":"Es9vMFrzaCERzju1Qtxp6EcLseV7FQGeXUc5KxZVUot2","logo":"usdt.png","decimals":6}
-]
+{
+  "tokens": [
+    {
+      "mint": "So11111111111111111111111111111111111111112",
+      "symbol": "SOL",
+      "name": "Solana",
+      "decimals": 9,
+      "logo": "./assets/sol.png"
+    },
+    {
+      "mint": "Es9vMFrzaCERDMFniQ2ytW8FkRWn5RDUSQ5yJptG2F3",
+      "symbol": "USDT",
+      "name": "Tether USD",
+      "decimals": 6,
+      "logo": "./assets/usdt.png"
+    },
+    {
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "decimals": 6,
+      "logo": "./assets/usdc.png"
+    }
+  ]
+}
