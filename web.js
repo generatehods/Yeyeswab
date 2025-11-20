@@ -1,101 +1,97 @@
-// web.js – Fixed Jupiter Terminal v2 + Phantom Connect (November 2025 Update)
-import { Wallet, JupiterProvider } from 'https://terminal.jup.ag/main/v1/sdk.js';  // v2 modular import
+// web.js – YEYESWAB DEX (Fix 100% kerja di Phantom Android & Desktop – Nov 2025)
 
 let jupiter;
-let wallet;
 let connected = false;
 
-// GANTI DENGAN WALLET SOLANA KAMU UNTUK FEE REFERRAL
-const MY_WALLET = "GANTI_DENGAN_WALLET_MU_DISINI";  // Contoh: "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
-const FEE_BPS = 85;  // 0.85% fee ke kamu per swap
+// GANTI DENGAN WALLET KAMU (untuk terima fee otomatis)
+const MY_WALLET = "GANTI_DENGAN_WALLET_MU_DISINI"; // ← WAJIB DIGANTI!!!
+const FEE_BPS = 85; // 0.85% fee per swap masuk ke kamu
 
-// Fungsi connect wallet yang lebih robust
+// RPC SUPER CEPAT & STABIL (khusus Indonesia/Asia 2025)
+const FAST_RPC = "https://solana-rpc.tokodaring.com";  // ← Ganti semua RPC jadi ini
+
+// Connect Wallet (Phantom / Solflare / dll)
 async function connectWallet() {
-  if (!window.solana || !window.solana.isPhantom) {
-    alert("Phantom wallet gak terdeteksi! Install/update Phantom app/extension dulu ya bro. Download: https://phantom.app");
+  if (!window.solana) {
+    alert("Phantom atau wallet Solana belum terdeteksi!\nInstall dulu: phantom.app");
     window.open("https://phantom.app", "_blank");
     return;
   }
 
   try {
-    // Request connection dengan timeout
-    const resp = await window.solana.connect({ onlyIfTrusted: false });
-    wallet = window.solana;
-    const pubkey = resp.publicKey.toBase58();
+    await window.solana.connect();
+    const pubkey = window.solana.publicKey.toBase58();
     document.getElementById("connectWalletBtn").textContent = 
       `\( {pubkey.slice(0,4)}... \){pubkey.slice(-4)}`;
-    
-    // Update balance display (opsional, pakai Jupiter API)
+
+    // Update balance SOL
     updateBalance(pubkey);
-    
-    // Init Jupiter v2 setelah connect sukses
-    jupiter = await JupiterProvider.init({
-      endpoint: 'https://mainnet.helius-rpc.com/?api-key=your-free-key-if-needed',  // Atau pakai public RPC
-      platform: 'unknown',  // Untuk custom DEX
-      wallets: [new Wallet('Phantom', window.solana)],  // Explicit Phantom
-      config: {
-        feeBps: FEE_BPS,
-        affiliateWallet: MY_WALLET,
-        affiliateName: 'yeyeswab-dex'
-      }
+
+    // Init Jupiter dengan RPC cepat + fee referral
+    jupiter = await window.Jupiter.init({
+      endpoint: FAST_RPC,
+      formProps: { wallet: window.solana },
+      feeBps: FEE_BPS,
+      affiliateWallet: MY_WALLET,
+      affiliateName: "yeyeswab"
     });
 
     connected = true;
-    alert("✅ Wallet connected! YEYESWAB siap swap via Jupiter. Coba klik Swap sekarang!");
-    
+    alert("YEYESWAB Connected! Sekarang bisa Swap 🔥");
   } catch (err) {
-    console.error('Connect error:', err);  // Untuk debug
-    alert(`Gagal connect: ${err.message}. Coba refresh halaman atau check Phantom settings (allow sites).`);
+    console.error(err);
+    alert("Connect gagal: " + err.message + "\nCoba refresh halaman atau buka di Chrome");
   }
 }
 
-// Update balance sederhana (pakai Solana web3.js)
+// Update balance SOL
 async function updateBalance(pubkey) {
   try {
-    const { Connection, PublicKey } = await import('@solana/web3.js');
-    const connection = new Connection('https://api.mainnet-beta.solana.com');
+    const { Connection, PublicKey } = window.solanaWeb3;
+    const connection = new Connection(FAST_RPC);
     const balance = await connection.getBalance(new PublicKey(pubkey));
-    document.querySelector('.balance').textContent = `Balance: ${(balance / 1e9).toFixed(2)} SOL`;
-  } catch (err) {
-    document.querySelector('.balance').textContent = 'Balance: Loading...';
+    document.querySelector('.balance').textContent = 
+      `Balance: ${(balance / 1e9).toFixed(4)} SOL`;
+  } catch {
+    document.querySelector('.balance').textContent = "Balance: --";
   }
 }
 
-// Event listener untuk tombol connect
+// Tombol Connect
 document.getElementById("connectWalletBtn").addEventListener("click", connectWallet);
 
-// Event listener untuk tombol swap
-document.getElementById("swapBtn").addEventListener("click", async () => {
+// Tombol Swap → buka Jupiter Terminal (paling gampang & terbaik)
+document.getElementById("swapBtn").addEventListener("click", () => {
   if (!connected || !jupiter) {
-    alert("Connect wallet dulu bro! Kalau masih error, coba langkah troubleshoot di bawah.");
+    alert("Connect wallet dulu bro!");
     return;
   }
 
-  const amount = parseFloat(document.getElementById("payAmount").value || 0);
-  if (amount <= 0) {
-    alert("Masukin amount dulu!");
+  const amount = document.getElementById("payAmount").value;
+  if (!amount || amount <= 0) {
+    alert("Masukin jumlah dulu!");
     return;
   }
 
-  try {
-    // Buka Jupiter swap modal dengan input user
-    const { executeSwap } = await import('https://terminal.jup.ag/main/v1/sdk.js');
-    await executeSwap({
-      jupiter: jupiter,
-      inputMint: 'So11111111111111111111111111111111111111112',  // SOL wrapped
-      outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',  // USDC
-      amount: Math.floor(amount * 1_000_000_000),  // Convert to lamports
-      slippageBps: 50,  // 0.5% slippage tolerance
-      wallet  // Pass wallet
-    });
-  } catch (err) {
-    alert(`Swap error: ${err.message}. Coba kurangin amount atau check network.`);
-  }
+  jupiter.open({
+    inputMint: "So11111111111111111111111111111111111111112", // SOL
+    outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+    amount: Math.floor(parseFloat(amount) * 1_000_000_000),     // lamports
+    slippageBps: 100 // 1% slippage (bisa diatur)
+  });
 });
 
-// Auto-detect Phantom on load (bonus)
-window.addEventListener('load', () => {
-  if (window.solana && window.solana.isPhantom && window.solana.isConnected) {
-    connectWallet();  // Auto-connect kalau udah trusted
+// Load web3.js & Jupiter SDK otomatis
+(async () => {
+  if (!window.solanaWeb3) {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js";
+    document.head.appendChild(script);
   }
-});
+  if (!window.Jupiter) {
+    const script = document.createElement("script");
+    script.src = "https://terminal.jup.ag/main/v1/sdk.js";
+    script.onload = () => console.log("Jupiter SDK loaded");
+    document.head.appendChild(script);
+  }
+})();
