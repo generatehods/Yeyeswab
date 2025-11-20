@@ -1,63 +1,67 @@
-import { Connection, PublicKey } from "https://esm.sh/@solana/web3.js";
+import {
+  Connection,
+  PublicKey
+} from "https://esm.sh/@solana/web3.js";
 
-// --- CONFIG MAINNET ---
+let walletPublicKey = null;
 const connection = new Connection("https://api.mainnet-beta.solana.com");
 
-// DOM ELEMENTS
+// DOM
 const connectBtn = document.getElementById("connectWalletBtn");
 const balanceEl = document.querySelector(".balance");
 
-let walletPublicKey = null;
-
-// --- HELPER FUNCTION TO GET SOL BALANCE ---
+// --- GET SOL BALANCE ---
 async function getSolBalance(pubkey) {
-  const balanceLamports = await connection.getBalance(pubkey);
-  const balanceSOL = balanceLamports / 1e9;
-  return balanceSOL.toFixed(4);
+  const lamports = await connection.getBalance(pubkey);
+  return (lamports / 1e9).toFixed(4);
 }
 
-// --- CONNECT PHANTOM WALLET ---
+// --- CONNECT WALLET ---
+// Desktop browser: window.solana
+// Mobile app: deep link via solana-mobile-wallet-adapter
 async function connectWallet() {
   try {
-    if (!window.solana) {
-      alert("Please install Phantom wallet!");
+    if (window.solana && window.solana.isPhantom) {
+      // Desktop / Mobile browser
+      const resp = await window.solana.connect();
+      walletPublicKey = resp.publicKey;
+    } else {
+      // Mobile deep link fallback
+      // phantom://app/wallet-connect?uri=<WC_URI> 
+      // (Phantom Mobile Wallet Adapter requires generating WalletConnect URI)
+      alert("Open this page in a browser to connect wallet, or implement Solana Mobile Wallet Adapter in app.");
       return;
     }
 
-    const resp = await window.solana.connect();
-    walletPublicKey = resp.publicKey;
+    // Update button
     connectBtn.innerText = walletPublicKey.toString().slice(0, 4) + "..." + walletPublicKey.toString().slice(-4);
 
-    // load balance
+    // Show balance
     const solBal = await getSolBalance(walletPublicKey);
     balanceEl.innerText = `Balance: ${solBal} SOL`;
 
-    // Optional: auto-refresh every 10s
+    // Auto-refresh every 10s
     setInterval(async () => {
       const solBal = await getSolBalance(walletPublicKey);
       balanceEl.innerText = `Balance: ${solBal} SOL`;
     }, 10000);
 
   } catch (err) {
-    console.error("Wallet connect failed", err);
+    console.error("Connect wallet failed:", err);
   }
 }
 
-// --- DISCONNECT (Optional) ---
+// --- DISCONNECT ---
 async function disconnectWallet() {
-  try {
-    if (window.solana && window.solana.isConnected) {
-      await window.solana.disconnect();
-      walletPublicKey = null;
-      connectBtn.innerText = "Connect Wallet";
-      balanceEl.innerText = `Balance: 0.00`;
-    }
-  } catch (err) {
-    console.error("Disconnect failed", err);
+  if (window.solana && window.solana.isConnected) {
+    await window.solana.disconnect();
   }
+  walletPublicKey = null;
+  connectBtn.innerText = "Connect Wallet";
+  balanceEl.innerText = "Balance: 0.00";
 }
 
-// --- EVENT LISTENER ---
+// --- BUTTON CLICK ---
 connectBtn.addEventListener("click", async () => {
   if (!walletPublicKey) {
     await connectWallet();
