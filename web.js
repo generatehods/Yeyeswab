@@ -33,7 +33,7 @@ function showPopup(msg) {
 
 
 // =======================
-// CONNECT WALLET (MOBILE FIX)
+// CONNECT WALLET
 // =======================
 async function connectWallet() {
   const provider = window.phantom?.solana || window.solana;
@@ -157,12 +157,58 @@ document.getElementById("swapBtn")
     }
 
     jupiter.open({
-      inputMint: "So11111111111111111111111111111111111111112", // SOL
-      outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+      inputMint: window.currentPayMint || "So11111111111111111111111111111111111111112", // Auto if detected
+      outputMint: window.currentReceiveMint || "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
       amount: Math.floor(parseFloat(amount) * 1_000_000_000),
       slippageBps: 100
     });
   });
+
+
+
+// ========================================================================
+// 🔵 NEW FEATURE: AUTO-DETECT TOKEN FROM CONTRACT (JUPITER TOKEN METADATA)
+// ========================================================================
+
+const TOKEN_LIST_URL = "https://token.jup.ag/all";
+let tokenMap = {};
+
+// Load Token Metadata List
+fetch(TOKEN_LIST_URL)
+  .then(res => res.json())
+  .then(tokens => {
+    tokens.forEach(t => tokenMap[t.address] = t);
+    console.log("Token Metadata Loaded:", tokens.length);
+  });
+
+
+// Listen for contract paste
+document.getElementById("contractInput")?.addEventListener("input", () => {
+  const mint = document.getElementById("contractInput").value.trim();
+
+  if (!mint) return;
+
+  if (!tokenMap[mint]) {
+    showPopup("Token not found!");
+    return;
+  }
+
+  const token = tokenMap[mint];
+
+  // Update UI name
+  document.getElementById("payToken").textContent = `${token.symbol} ▼`;
+
+  // Update global mint
+  window.currentPayMint = mint;
+
+  // Update Logo
+  if (token.logoURI) {
+    document.querySelector(".logo-right").src = token.logoURI;
+  }
+
+  showPopup(`Detected: ${token.symbol}`);
+});
+
 
 
 // =======================
