@@ -1,43 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YeyeSwab — Mainnet DEX</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>yeyeswab</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", sans-serif;
+      background: #0a0f1f;
+      color: #fff;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      font-size: 22px;
+      font-weight: 600;
+      background: #0d1328;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.7);
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+
+    .swap-card {
+      background: #11172f;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      border: 1px solid #1e2645;
+    }
+
+    .label {
+      font-size: 14px;
+      margin-bottom: 6px;
+      opacity: 0.8;
+    }
+
+    .token-box {
+      background: #0d1328;
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid #1e2645;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .token-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .token-select {
+      background: #1b2445;
+      padding: 7px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid #2f3a6b;
+    }
+
+    .amount-input {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 20px;
+      width: 100px;
+      text-align: right;
+      outline: none;
+    }
+
+    .switch-btn {
+      background: #1b2445;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 15px auto;
+      cursor: pointer;
+      border: 1px solid #2f3a6b;
+    }
+
+    .swap-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #2d6bff, #5f89ff);
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(45,107,255,0.4);
+    }
+
+    .swap-btn:active {
+      transform: scale(0.97);
+    }
+
+    .balance {
+      font-size: 13px;
+      opacity: 0.7;
+      text-align: right;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 
 <body>
+
+  <div class="header">yeyeswab</div>
+
   <div class="container">
-    
+    <div class="swap-card">
 
-    <button id="connectBtn" class="btn">Connect Wallet</button>
-    <div id="walletAddress" class="small muted">Not connected</div>
+      <div class="balance">Balance: 0.00</div>
 
-    <div class="label">Balance</div>
-    <div id="balanceSOL" class="small">SOL: 0</div>
-    <div id="balanceToken" class="small">Token: 0</div>
+      <div class="label">You Pay</div>
+      <div class="token-box">
+        <div class="token-left">
+          <div class="token-select" id="payToken">SOL ▼</div>
+        </div>
+        <input type="number" id="payAmount" class="amount-input" placeholder="0.0">
+      </div>
 
-    <hr />
+      <div class="switch-btn">⇅</div>
 
-    <div class="label">Token Mint Address</div>
-    <input id="tokenMint" placeholder="Paste Token Mint" />
+      <div class="label">You Receive</div>
+      <div class="token-box">
+        <div class="token-left">
+          <div class="token-select" id="receiveToken">USDC ▼</div>
+        </div>
+        <input type="number" id="receiveAmount" class="amount-input" placeholder="0.0" disabled>
+      </div>
 
-    <button id="detectBtn" class="btn secondary">Detect Token</button>
-    <div id="tokenInfo" class="info"></div>
+      <button class="swap-btn" id="swapBtn">Swap</button>
 
-    <hr />
-
-    <div class="label">Amount</div>
-    <input id="amount" placeholder="Amount to swap" />
-
-    <button id="swapBtn" class="btn primary">Swap via Jupiter</button>
-
-    <div id="status" class="status"></div>
+    </div>
   </div>
 
-  <!-- script di-load paling bawah supaya semua elemen sudah ada -->
-  <script type="module" src="./web.js"></script>
 </body>
 </html>
