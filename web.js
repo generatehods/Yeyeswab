@@ -1,6 +1,6 @@
 // ===========================
 // YEYESWAB DEX – FINAL VERSION
-// Phantom Android Fix + Custom Popup
+// Phantom Android Fix + Custom Popup + SDK wait
 // ===========================
 
 // Referral wallet & fee
@@ -20,6 +20,7 @@ function showPopup(msg) {
 
   // fallback jika popup belum ada
   if (!box) {
+    // fallback ke alert supaya user tetap tahu kalau popup belum ditambahkan ke HTML
     alert(msg);
     return;
   }
@@ -30,6 +31,19 @@ function showPopup(msg) {
   setTimeout(() => {
     box.style.display = "none";
   }, 2000);
+}
+
+
+// =======================
+// UTILS: waitFor
+// =======================
+async function waitFor(conditionFn, timeoutMs = 10000, intervalMs = 200) {
+  const start = Date.now();
+  while (!conditionFn()) {
+    if (Date.now() - start > timeoutMs) return false;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return true;
 }
 
 
@@ -58,7 +72,17 @@ async function connectWallet() {
 
     updateBalance(pubkey);
 
-    // Init Jupiter
+    // ======================================================
+    // TUNGGU Jupiter SDK siap (menghindari undefined init)
+    // ======================================================
+    const ok = await waitFor(() => !!window.Jupiter, 10000, 200);
+
+    if (!ok) {
+      showPopup("Jupiter SDK belum siap. Refresh halaman atau buka di Chrome.");
+      return;
+    }
+
+    // Init Jupiter (saat sudah ready)
     jupiter = await window.Jupiter.init({
       endpoint: FAST_RPC,
       formProps: { wallet: provider },
@@ -71,7 +95,7 @@ async function connectWallet() {
     showPopup("Connected!");
   } catch (err) {
     console.error(err);
-    showPopup("Connect gagal: " + err.message);
+    showPopup("Connect gagal: " + (err?.message || err));
   }
 }
 
@@ -119,6 +143,12 @@ document.getElementById("swapBtn")
       return;
     }
 
+    // Pastikan Jupiter sudah ready (extra check)
+    if (!window.Jupiter) {
+      showPopup("Jupiter SDK belum siap.");
+      return;
+    }
+
     jupiter.open({
       inputMint: "So11111111111111111111111111111111111111112", // SOL
       outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
@@ -131,19 +161,23 @@ document.getElementById("swapBtn")
 // =======================
 // LOAD SOLANA WEB3 + JUPITER SDK
 // =======================
-(async () => {
+(function loadLibs() {
   // Load solanaWeb3
   if (!window.solanaWeb3) {
     const s = document.createElement("script");
     s.src = "https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js";
+    s.async = true;
     document.head.appendChild(s);
   }
 
   // Load Jupiter SDK (delay fix Android)
   setTimeout(() => {
-    const j = document.createElement("script");
-    j.src = "https://terminal.jup.ag/main/v1/sdk.js";
-    j.onload = () => console.log("Jupiter SDK loaded");
-    document.head.appendChild(j);
+    if (!window.Jupiter) {
+      const j = document.createElement("script");
+      j.src = "https://terminal.jup.ag/main/v1/sdk.js";
+      j.async = true;
+      j.onload = () => console.log("Jupiter SDK loaded");
+      document.head.appendChild(j);
+    }
   }, 400);
 })();
