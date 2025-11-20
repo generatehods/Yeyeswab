@@ -1,6 +1,6 @@
 // ===========================
 // YEYESWAB DEX – FINAL VERSION
-// Phantom Android Fix + Custom Popup + SDK wait
+// Phantom Android Fix + Custom Popup + SDK wait + LOGOUT
 // ===========================
 
 // Referral wallet & fee
@@ -10,6 +10,7 @@ const FAST_RPC = "https://solana-rpc.tokodaring.com";
 
 let jupiter;
 let connected = false;
+let provider;
 
 
 // =======================
@@ -18,9 +19,7 @@ let connected = false;
 function showPopup(msg) {
   const box = document.getElementById("popup");
 
-  // fallback jika popup belum ada
   if (!box) {
-    // fallback ke alert supaya user tetap tahu kalau popup belum ditambahkan ke HTML
     alert(msg);
     return;
   }
@@ -51,7 +50,7 @@ async function waitFor(conditionFn, timeoutMs = 10000, intervalMs = 200) {
 // CONNECT WALLET (MOBILE FIX)
 // =======================
 async function connectWallet() {
-  const provider = window.phantom?.solana || window.solana;
+  provider = window.phantom?.solana || window.solana;
 
   if (!provider || !provider.isPhantom) {
     showPopup("Phantom tidak terdeteksi! Gunakan Chrome / Phantom Browser.");
@@ -72,9 +71,7 @@ async function connectWallet() {
 
     updateBalance(pubkey);
 
-    // ======================================================
-    // TUNGGU Jupiter SDK siap (menghindari undefined init)
-    // ======================================================
+    // TUNGGU Jupiter SDK siap
     const ok = await waitFor(() => !!window.Jupiter, 10000, 200);
 
     if (!ok) {
@@ -82,7 +79,7 @@ async function connectWallet() {
       return;
     }
 
-    // Init Jupiter (saat sudah ready)
+    // Init Jupiter
     jupiter = await window.Jupiter.init({
       endpoint: FAST_RPC,
       formProps: { wallet: provider },
@@ -93,11 +90,44 @@ async function connectWallet() {
 
     connected = true;
     showPopup("Connected!");
+
+    document.getElementById("logoutWalletBtn").style.display = "inline-block";
+
   } catch (err) {
     console.error(err);
     showPopup("Connect gagal: " + (err?.message || err));
   }
 }
+
+
+
+// =======================
+// LOGOUT WALLET
+// =======================
+async function logoutWallet() {
+  if (!provider) {
+    showPopup("Wallet belum terkoneksi.");
+    return;
+  }
+
+  try {
+    await provider.disconnect();
+
+    connected = false;
+    jupiter = null;
+
+    // Reset UI
+    document.getElementById("connectWalletBtn").textContent = "Connect Wallet";
+    document.querySelector('.balance').textContent = "Balance: --";
+    document.getElementById("logoutWalletBtn").style.display = "none";
+
+    showPopup("Wallet berhasil logout!");
+  } catch (err) {
+    console.error(err);
+    showPopup("Gagal logout: " + (err?.message || err));
+  }
+}
+
 
 
 // =======================
@@ -118,11 +148,19 @@ async function updateBalance(pubkey) {
 }
 
 
+
 // =======================
 // BUTTON CONNECT
 // =======================
 document.getElementById("connectWalletBtn")
   .addEventListener("click", connectWallet);
+
+// =======================
+// BUTTON LOGOUT
+// =======================
+document.getElementById("logoutWalletBtn")
+  .addEventListener("click", logoutWallet);
+
 
 
 // =======================
@@ -143,7 +181,6 @@ document.getElementById("swapBtn")
       return;
     }
 
-    // Pastikan Jupiter sudah ready (extra check)
     if (!window.Jupiter) {
       showPopup("Jupiter SDK belum siap.");
       return;
@@ -158,11 +195,11 @@ document.getElementById("swapBtn")
   });
 
 
+
 // =======================
 // LOAD SOLANA WEB3 + JUPITER SDK
 // =======================
 (function loadLibs() {
-  // Load solanaWeb3
   if (!window.solanaWeb3) {
     const s = document.createElement("script");
     s.src = "https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js";
@@ -170,7 +207,6 @@ document.getElementById("swapBtn")
     document.head.appendChild(s);
   }
 
-  // Load Jupiter SDK (delay fix Android)
   setTimeout(() => {
     if (!window.Jupiter) {
       const j = document.createElement("script");
